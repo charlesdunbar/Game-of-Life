@@ -6,23 +6,34 @@ package main
 import (
 	"fmt"
 	"math/rand"
+	"os"
 	"time"
 )
 
 type board [][]bool
 
+var currentGeneration, currentPopulation, maxGeneration, maxPopulation int = 0, 0, 0, 0
+var seed int64 = 1
+
 // Print board nicely
 func (b board) String() string {
 	retVal := ""
+	currentGeneration++
+	currentPopulation = 0
 	for i := range b {
 		for j := range b[i] {
 			if b[i][j] {
 				retVal += "X "
+				currentPopulation++
 			} else {
 				retVal += "O "
 			}
 		}
 		retVal += "\n"
+	}
+	if currentPopulation > maxPopulation {
+		maxPopulation = currentPopulation
+		maxGeneration = currentGeneration
 	}
 	return retVal
 
@@ -145,7 +156,7 @@ func initBoard(x, y int) board {
 	for i := range retVal {
 		retVal[i] = make([]bool, y)
 	}
-	rand.Seed(1)
+	rand.Seed(seed)
 	for i := range retVal {
 		for j := range retVal[i] {
 			retVal[i][j] = rand.Float32() < 0.5
@@ -155,9 +166,17 @@ func initBoard(x, y int) board {
 }
 
 func main() {
-	testBoard := initBoard(10, 10)
+	testBoard := initBoard(5, 5)
 	for {
-		fmt.Println(testBoard)
+		fmt.Print(testBoard)
+		fmt.Printf("\nCurrent Generation: %d\n", currentGeneration)
+		fmt.Printf("Current Population: %d\n\n", currentPopulation)
+		if currentPopulation == 0 {
+			fmt.Println("Game Over")
+			fmt.Printf("Seed %d lastest %d generations, with a \n", seed, currentGeneration)
+			fmt.Printf("maximum population of %d during generation %d\n", maxPopulation, maxGeneration)
+			os.Exit(1)
+		}
 		testBoard = runRules(&testBoard)
 		time.Sleep(1 * time.Second)
 	}
